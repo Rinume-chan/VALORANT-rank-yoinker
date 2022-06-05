@@ -1,28 +1,21 @@
-import glob
-import os
-import time
+import logging
+from logging.handlers import RotatingFileHandler
 
 class Logging:
     def __init__(self):
         self.logFileOpened = False
+        self.logger = logging.getLogger()
 
-    def log(self, stringToLog: str):
-        # creating logs folder
-        try:
-            os.mkdir(os.getcwd() + "\logs")
-        except FileExistsError:
-            pass
-        filenames = []
-        for filename in glob.glob(r"logs/log-*.txt"):
-            filenames.append(int(filename[9:-4]))
-        if len(filenames) == 0:
-            filenames.append(0)
-        if self.logFileOpened:
-            with open(f"logs/log-{max(filenames)}.txt", "a") as logFile:
-                logFile.write(f"[{time.strftime('%Y.%m.%d-%H.%M.%S', time.localtime(time.time()))}]"
-                              f" {stringToLog.encode('ascii', 'replace').decode()}\n")
-        else:
-            with open(f"logs/log-{max(filenames) + 1}.txt", "w") as logFile:
-                self.logFileOpened = True
-                logFile.write(f"[{time.strftime('%Y.%m.%d-%H.%M.%S', time.localtime(time.time()))}]"
-                              f" {stringToLog.encode('ascii', 'replace').decode()}\n")
+        max_bytes = 32 * 1024 * 1024  # 32 MiB
+        handler = RotatingFileHandler(filename='yoinker.log', encoding='utf-8', mode='w', maxBytes=max_bytes, backupCount=5)
+        dt_fmt = '%Y-%m-%d %H:%M:%S'
+        formatter = logging.Formatter('[{asctime}] [{levelname:<7}]: {message}', dt_fmt, style='{')
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+
+    def log(self, message: str):
+        """We don't really need any extensive logs, so we will just throw everything under INFO"""
+        self.logger.info(message)
+
+    def error(self, message: str):
+        self.logger.error(message)
