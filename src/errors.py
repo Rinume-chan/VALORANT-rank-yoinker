@@ -3,9 +3,9 @@ import os.path
 from src.logs import Logging
 
 class Error:
-    
+
     def __init__(self):
-        self.Logging = Logging()
+        self.Logging = Logging
         self.log = self.Logging.log
 
 
@@ -25,7 +25,7 @@ class Error:
         sock.close()
 
     def LockfileError(self, path):
-        
+
         if os.path.exists(path):
             return True
         else:
