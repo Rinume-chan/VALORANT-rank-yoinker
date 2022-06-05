@@ -5,8 +5,9 @@ class LoggingClass:
     def __init__(self):
         self.logFileOpened = False
         self.logger = logging.getLogger()
+        self.logger.setLevel(logging.INFO)
 
-        max_bytes = 32 * 1024 * 1024  # 32 MiB
+        max_bytes = 2 * 1024 * 1024  # 2 MiB
         handler = RotatingFileHandler(filename='yoinker.log', encoding='utf-8', mode='w', maxBytes=max_bytes, backupCount=5)
         dt_fmt = '%Y-%m-%d %H:%M:%S'
         formatter = logging.Formatter('[{asctime}] [{levelname}]: {message}', dt_fmt, style='{')
