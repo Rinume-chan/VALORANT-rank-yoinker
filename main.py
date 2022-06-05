@@ -4,6 +4,8 @@ import urllib3
 import os
 import sys
 import time
+import re
+
 from prettytable import PrettyTable
 from alive_progress import alive_bar
 
@@ -29,10 +31,12 @@ from src.server import Server
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 os.system('cls')
-os.system(f"title VALORANT rank yoinker v{version}")
+os.system(f"title VALORANT rank yoinker v{version} (Modified by Willy)")
 
 server = ""
 
+# https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-escape-sequences-from-a-string-in-python
+ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 def program_exit(status: int):  # so we don't need to import the entire sys module
     log(f"exited program with error code {status}")
@@ -40,10 +44,9 @@ def program_exit(status: int):  # so we don't need to import the entire sys modu
 
 
 try:
-    Logging = Logging()
     log = Logging.log
-    
-    Requests = Requests(version, log)
+
+    Requests = Requests(version)
     Requests.check_version()
     Requests.check_status()
 
@@ -84,6 +87,8 @@ try:
     gameContent = content.get_content()
     seasonID = content.get_latest_season_id(gameContent)
     lastGameState = ""
+
+    _last_logged_table = None
 
     while True:
         table = PrettyTable()
@@ -347,15 +352,29 @@ try:
             server = ""
             table.field_names = ["Party", "Agent", "Name", "Skin", "Rank", "RR", "Peak Rank", "pos.", "Level"]
             if title is not None:
+                print()
                 print(table)
-                print(f"VALORANT rank yoinker v{version}")
+                print(f"\n{'-'*50}")
+                if game_state == "INGAME":
+                    logging_table = table.get_string(fields=["Party", "Agent", "Name", "Rank", "Peak Rank"])
+
+                    # Slight optimization to not log the same table multiple times
+                    if _last_logged_table != logging_table:
+                        _last_logged_table = logging_table
+
+                        # We want to strip ANSI escape sequences before logging it to file
+                        logging_table = ansi_escape.sub('', logging_table)
+                        log('\n' + logging_table)
+
         if cfg.cooldown == 0:
             input("Press enter to fetch again...")
+            print("Continuing...")
         else:
             time.sleep(cfg.cooldown)
 except:
     print(color(
         "The program has encountered an error. If the problem persists, please reach support"
         f" with the logs found in {os.getcwd()}\logs", fore=(255, 0, 0)))
+    Logging.error(traceback.format_exc())
     input("press enter to exit...\n")
     os._exit(1)
