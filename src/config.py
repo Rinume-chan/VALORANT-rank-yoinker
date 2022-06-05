@@ -48,7 +48,7 @@ class Config:
                             print(weapon + " is not known valorant weapon you can edit directly " + os.getcwd() + "\config.json\n")
                             config["weapon"] = "Phantom"
                             json.dump(config, f, indent=4)
-                            self.log("vandal weapon has been added to the config file by default")
+                            self.log("Phantom weapon has been added to the config file by default")
                         else:
                             config["weapon"] = weapon
                             json.dump(config, f, indent=4)
@@ -63,7 +63,7 @@ class Config:
             self.log(f"got cooldown with value '{self.cooldown}'")
 
             if not self.weapon_check(config["weapon"]):
-                self.weapon = "vandal" # if the user manually entered a wrong name into the config file, this will be the default until changed by the user.
+                self.weapon = "Phantom" # if the user manually entered a wrong name into the config file, this will be the default until changed by the user.
             else:
                 self.weapon = config["weapon"]
 
