@@ -4,6 +4,8 @@ import urllib3
 import os
 import sys
 import time
+import re
+
 from prettytable import PrettyTable
 from alive_progress import alive_bar
 
@@ -24,15 +26,17 @@ from src.states.coregame import Coregame
 
 from src.table import Table
 from src.server import Server
-from src.errors import Error
+
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 os.system('cls')
-os.system(f"title VALORANT rank yoinker v{version}")
+os.system(f"title VALORANT rank yoinker v{version} (Modified by Willy)")
 
 server = ""
 
+# https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-escape-sequences-from-a-string-in-python
+ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 def program_exit(status: int):  # so we don't need to import the entire sys module
     log(f"exited program with error code {status}")
@@ -40,12 +44,9 @@ def program_exit(status: int):  # so we don't need to import the entire sys modu
 
 
 try:
-    Logging = Logging()
     log = Logging.log
 
-    ErrorSRC = Error(log)
-    
-    Requests = Requests(version, log, ErrorSRC)
+    Requests = Requests(version)
     Requests.check_version()
     Requests.check_status()
 
@@ -64,7 +65,7 @@ try:
     pregame = Pregame(Requests, log)
     coregame = Coregame(Requests, log)
 
-    Server = Server(log, ErrorSRC)
+    Server = Server(Requests)
     Server.start_server()
 
 
@@ -86,6 +87,8 @@ try:
     gameContent = content.get_content()
     seasonID = content.get_latest_season_id(gameContent)
     lastGameState = ""
+
+    _last_logged_table = None
 
     while True:
         table = PrettyTable()
@@ -203,9 +206,8 @@ try:
                 Players = pregame_stats["AllyTeam"]["Players"]
                 presences.wait_for_presence(namesClass.get_players_puuid(Players))
                 names = namesClass.get_names_from_puuids(Players)
-                #temporary until other regions gets fixed?
-                # loadouts = loadoutsClass.get_match_loadouts(pregame.get_pregame_match_id(), pregame_stats, cfg.weapon, valoApiSkins, names,
-                                            #   state="pregame")
+                loadouts = loadoutsClass.get_match_loadouts(pregame.get_pregame_match_id(), pregame_stats, cfg.weapon, valoApiSkins, names,
+                                              state="pregame")
                 with alive_bar(total=len(Players), title='Fetching Players', bar='classic2') as bar:
                     presence = presences.get_presence()
                     partyOBJ = menu.get_party_json(namesClass.get_players_puuid(Players), presence)
@@ -264,9 +266,8 @@ try:
                         # VIEWS
                         # views = get_views(names[player["Subject"]])
 
-                        #temporary until other regions gets fixed?
                         # skin
-                        # skin = loadouts[player["Subject"]]
+                        skin = loadouts[player["Subject"]]
 
                         # RANK
                         rankName = NUMBERTORANKS[playerRank[0]]
@@ -287,7 +288,7 @@ try:
                                               agent,
                                               name,
                                               # views,
-                                              "",
+                                              skin,
                                               rankName,
                                               rr,
                                               peakRank,
@@ -357,17 +358,29 @@ try:
             server = ""
             table.field_names = ["Party", "Agent", "Name", "Skin", "Rank", "RR", "Peak Rank", "pos.", "Level"]
             if title is not None:
+                print()
                 print(table)
-                print(f"VALORANT rank yoinker v{version}")
-                print(color("\nVisit https://vry.netlify.app/matchLoadouts to view full player inventories\n", fore=(255, 253, 205)))
+                print(f"\n{'-'*50}")
+                if game_state == "INGAME":
+                    logging_table = table.get_string(fields=["Party", "Agent", "Name", "Rank", "Peak Rank"])
+
+                    # Slight optimization to not log the same table multiple times
+                    if _last_logged_table != logging_table:
+                        _last_logged_table = logging_table
+
+                        # We want to strip ANSI escape sequences before logging it to file
+                        logging_table = ansi_escape.sub('', logging_table)
+                        log('\n' + logging_table)
+
         if cfg.cooldown == 0:
             input("Press enter to fetch again...")
+            print("Continuing...")
         else:
             time.sleep(cfg.cooldown)
 except:
-    log(traceback.format_exc())
     print(color(
         "The program has encountered an error. If the problem persists, please reach support"
         f" with the logs found in {os.getcwd()}\logs", fore=(255, 0, 0)))
+    Logging.error(traceback.format_exc())
     input("press enter to exit...\n")
     os._exit(1)

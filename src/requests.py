@@ -7,13 +7,15 @@ import requests
 from colr import color
 import os
 
+from src.logs import Logging
+from src.errors import Error
 
 class Requests:
-    def __init__(self, version, log, Error):
-        self.Error = Error
+    def __init__(self, version):
         self.version = version
         self.headers = {}
-        self.log = log
+        self.Logging = Logging
+        self.log = self.Logging.log
 
         self.region = self.get_region()
         self.pd_url = f"https://pd.{self.region[0]}.a.pvp.net"
@@ -50,7 +52,7 @@ class Requests:
         if not rStatus["status_ok"] or rStatus["print_message"]:
             status_color = (255, 0, 0) if not rStatus["status_ok"] else (0, 255, 0)
             print(color(rStatus["message"], fore=status_color))
-            
+
     def fetch(self, url_type: str, endpoint: str, method: str):
         try:
             if url_type == "glz":
@@ -124,8 +126,8 @@ class Requests:
 
     def get_lockfile(self):
         path = os.path.join(os.getenv('LOCALAPPDATA'), R'Riot Games\Riot Client\Config\lockfile')
-        
-        if self.Error.LockfileError(path):
+
+        if Error().LockfileError(path):
             with open(path) as lockfile:
                 self.log("opened lockfile")
                 data = lockfile.read().split(':')

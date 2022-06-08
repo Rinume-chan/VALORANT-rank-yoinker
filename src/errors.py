@@ -1,10 +1,12 @@
 import socket
 import os.path
+from src.logs import Logging
 
 class Error:
-    
-    def __init__(self, log):
-        self.log = log
+
+    def __init__(self):
+        self.Logging = Logging
+        self.log = self.Logging.log
 
 
     def PortError(self, port):
@@ -23,7 +25,7 @@ class Error:
         sock.close()
 
     def LockfileError(self, path):
-        
+
         if os.path.exists(path):
             return True
         else:
