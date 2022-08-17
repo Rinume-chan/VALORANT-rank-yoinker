@@ -17,19 +17,12 @@ class Colors:
                 else:
                     name = "Player"
         if team == 'Red':
-            if playerPuuid not in party_members:
-                Teamcolor = color(name, fore=(238, 77, 77))
-            else:
-                Teamcolor = color(orig_name, fore=(238, 77, 77))
-        elif team == 'Blue':
-            if playerPuuid not in party_members:
-                Teamcolor = color(name, fore=(76, 151, 237))
-            else:
-                Teamcolor = color(orig_name, fore=(76, 151, 237))
-        else:
-            Teamcolor = ''
-        if playerPuuid == selfPuuid:
+            Teamcolor = color(orig_name, fore=(238, 77, 77))
+        elif playerPuuid == selfPuuid:
             Teamcolor = color(orig_name, fore=(221, 224, 41))
+        else:
+            Teamcolor = color(orig_name, fore=(76, 151, 237))
+
         return Teamcolor
 
 
@@ -59,6 +52,7 @@ class Colors:
             return agent
 
     def get_hs_gradient(self, number):
+        return "N/A"
         try:
             number = int(number)
         except ValueError:
@@ -91,6 +85,7 @@ class Colors:
                 return color(number, fore=f)
 
     def get_wr_gradient(self, number):
+        return "N/A"
         try:
             number = int(number)
         except ValueError:

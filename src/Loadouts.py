@@ -46,9 +46,9 @@ class Loadouts:
                             weaponLists.update({players[player]["Subject"]: color(skin["displayName"], fore=rgb_color)})
                             # else:
                             #     weaponLists.update({player["Subject"]: color(skin["Name"], fore=rgb_color)})
-        final_json = self.convertLoadoutToJsonArray(PlayerInventorys, playersBackup, state, names)
+        # final_json = self.convertLoadoutToJsonArray(PlayerInventorys, playersBackup, state, names)
         # self.log(f"json for website: {final_json}")
-        self.Server.send_message(json.dumps(final_json))
+        # self.Server.send_message(json.dumps(final_json))
         return weaponLists
 
     #this will convert valorant loadouts to json with player names
@@ -120,7 +120,7 @@ class Loadouts:
 
                 #create weapons field
                 final_json[players[i]["Subject"]].update({"Weapons": {}})
-                
+
                 for skin in PlayerInventory["Items"]:
 
                     #create skin field
@@ -131,7 +131,7 @@ class Loadouts:
                         for var_socket in sockets:
                             if socket == sockets[var_socket]:
                                 final_json[players[i]["Subject"]]["Weapons"][skin].update(
-                                    {  
+                                    {
                                         var_socket: PlayerInventory["Items"][skin]["Sockets"][socket]["Item"]["ID"]
                                     }
                                 )

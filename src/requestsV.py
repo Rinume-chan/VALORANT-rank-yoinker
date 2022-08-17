@@ -44,7 +44,7 @@ class Requests:
         if not rStatus["status_good"] or rStatus["print_message"]:
             status_color = (255, 0, 0) if not rStatus["status_good"] else (0, 255, 0)
             print(color(rStatus["message_to_display"], fore=status_color))
-            
+
     def fetch(self, url_type: str, endpoint: str, method: str, rate_limit_seconds=5):
         try:
             if url_type == "glz":
@@ -125,13 +125,15 @@ class Requests:
 
     def get_lockfile(self):
         path = os.path.join(os.getenv('LOCALAPPDATA'), R'Riot Games\Riot Client\Config\lockfile')
-        
+
         if self.Error.LockfileError(path):
             with open(path) as lockfile:
                 self.log("opened lockfile")
                 data = lockfile.read().split(':')
                 keys = ['name', 'PID', 'port', 'password', 'protocol']
-                return dict(zip(keys, data))
+                ret = dict(zip(keys, data))
+                self.log(f"Log file read: {ret}")
+                return ret
 
 
     def get_headers(self):

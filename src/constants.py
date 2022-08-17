@@ -137,16 +137,16 @@ WEAPONS = [
 ]
 
 DEFAULT_CONFIG = {
-        "cooldown": 10,
+        "cooldown": 0,
         "port": 1100,
-        "weapon": "Vandal",
+        "weapon": "Phantom",
         "table": {
             "skin": True,
             "rr": True,
             "peakrank": True,
             "leaderboard": True,
-            "headshot_percent": True,
-            "winrate": True
+            "headshot_percent": False,
+            "winrate": False
         },
         "flags": {
             "last_played": True,

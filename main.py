@@ -3,6 +3,7 @@ import requests
 import urllib3
 import os
 import sys
+import re
 import time
 from prettytable import PrettyTable
 from alive_progress import alive_bar
@@ -36,10 +37,12 @@ from src.player_stats import PlayerStats
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 os.system('cls')
-os.system(f"title VALORANT rank yoinker v{version}")
+os.system(f"title VALORANT rank yoinker v{version} (Modified by Willy)")
 
 server = ""
 
+# https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-escape-sequences-from-a-string-in-python
+ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 def program_exit(status: int):  # so we don't need to import the entire sys module
     log(f"exited program with error code {status}")
@@ -48,7 +51,6 @@ def program_exit(status: int):  # so we don't need to import the entire sys modu
 
 
 try:
-    Logging = Logging()
     log = Logging.log
 
     try:
@@ -60,15 +62,15 @@ try:
             if run_app:
                 os.system('cls')
             else:
-                os._exit(0)
+                sys.exit(0)
     except Exception as e:
         print("Something went wrong while running configurator!")
         log(f"configurator encountered an error: {str(e)}")
         input("press enter to exit...\n")
-        os._exit(1)
+        sys.exit(1)
 
     ErrorSRC = Error(log)
-    
+
     Requests = Requests(version, log, ErrorSRC)
     Requests.check_version()
     Requests.check_status()
@@ -118,7 +120,7 @@ try:
     seasonID = content.get_latest_season_id(gameContent)
     lastGameState = ""
 
-    print(color("\nVisit https://vry.netlify.app/matchLoadouts to view full player inventories\n", fore=(255, 253, 205)))
+    # print(color("\nVisit https://vry.netlify.app/matchLoadouts to view full player inventories\n", fore=(255, 253, 205)))
 
 
     # loop = asyncio.new_event_loop()
@@ -126,6 +128,7 @@ try:
     # loop.run_until_complete(Wss.conntect_to_websocket(game_state))
     # loop.close()
     firstTime = True
+    _last_logged_table = None
     while True:
         table.clear()
         table.set_default_field_names()
@@ -283,13 +286,8 @@ try:
                                 table.add_empty_row()
                         lastTeam = player['TeamID']
                         lastTeamBoolean = True
-                        if player["PlayerIdentity"]["HideAccountLevel"]:
-                            if player["Subject"] == Requests.puuid or player["Subject"] in partyMembersList or hide_levels == False:
-                                PLcolor = colors.level_to_color(player_level)
-                            else:
-                                PLcolor = ""
-                        else:
-                            PLcolor = colors.level_to_color(player_level)
+                        PLcolor = colors.level_to_color(player_level)
+
                         # AGENT
                         # agent = str(agent_dict.get(player["CharacterID"].lower()))
                         agent = colors.get_agent_from_uuid(player["CharacterID"].lower())
@@ -369,7 +367,7 @@ try:
                     partyOBJ = menu.get_party_json(namesClass.get_players_puuid(Players), presence)
                     partyMembers = menu.get_party_members(Requests.puuid, presence)
                     partyMembersList = [a["Subject"] for a in partyMembers]
-                    # log(f"retrieved names dict: {names}")
+                    log(f"retrieved names dict: {names}")
                     Players.sort(key=lambda Players: Players["PlayerIdentity"].get("AccountLevel"), reverse=True)
                     partyCount = 0
                     partyIcons = {}
@@ -409,13 +407,7 @@ try:
                                                             names[player["Subject"]],
                                                             player["Subject"], Requests.puuid, party_members=partyMembersList)
 
-                        if player["PlayerIdentity"]["HideAccountLevel"]:
-                            if player["Subject"] == Requests.puuid or player["Subject"] in partyMembersList or hide_levels == False:
-                                PLcolor = colors.level_to_color(player_level)
-                            else:
-                                PLcolor = ""
-                        else:
-                            PLcolor = colors.level_to_color(player_level)
+                        PLcolor = colors.level_to_color(player_level)
                         if player["CharacterSelectionState"] == "locked":
                             agent_color = color(str(agent_dict.get(player["CharacterID"].lower())),
                                                 fore=(255, 255, 255))
@@ -550,32 +542,37 @@ try:
                 if cfg.get_feature_flag("auto_hide_leaderboard") and (not is_leaderboard_needed):
                     table.set_runtime_col_flag('Pos.', False)
 
+                print()
                 table.display()
-                print(f"VALORANT rank yoinker v{version}")
-                                        #                 {
-                                        #     "times": sum(stats_data[player["Subject"]]),
-                                        #     "name": curr_player_stat["name"],
-                                        #     "agent": curr_player_stat["agent"],
-                                        #     "time_diff": time.time() - curr_player_stat["time"]
-                                        # })
+                print(f"\n{'-'*50}")
+                if game_state == "INGAME":
+                    logging_table = table.get_string(fields=["Party", "Agent", "Name", "Rank", "Peak Rank"])
+
+                    # Slight optimization to not log the same table multiple times
+                    if _last_logged_table != logging_table:
+                        _last_logged_table = logging_table
+
+                        # We want to strip ANSI escape sequences before logging it to file
+                        logging_table = ansi_escape.sub('', logging_table)
+                        log('\n' + logging_table)
+
                 if cfg.get_feature_flag("last_played"):
                     for played in already_played_with:
-                        print("\n") 
+                        print("\n")
                         print(f"Already played with {played['name']} (last {played['agent']}) {stats.convert_time(played['time_diff'])} ago. (Total played {played['times']} times)")
                 already_played_with = []
         if cfg.cooldown == 0:
             input("Press enter to fetch again...")
+            print("Continuing...")
         else:
-            # time.sleep(cfg.cooldown)
-            pass
-except:
-    #lame implementation of fast ctrl+c exit
-    if str(traceback.format_exc()[-18:-1]) == "KeyboardInterrupt":
-        os._exit(1)
+            time.sleep(cfg.cooldown)
+except KeyboardInterrupt:
+    sys.exit()
+except Exception:
 
-    log(traceback.format_exc())
     print(color(
         "The program has encountered an error. If the problem persists, please reach support"
         f" with the logs found in {os.getcwd()}\logs", fore=(255, 0, 0)))
+    Logging.error(traceback.format_exc())
     input("press enter to exit...\n")
-    os._exit(1)
+    sys.exit(1)
