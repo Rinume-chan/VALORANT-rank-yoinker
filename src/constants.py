@@ -137,7 +137,7 @@ WEAPONS = [
 ]
 
 DEFAULT_CONFIG = {
-        "cooldown": 0,
+        "cooldown": 10,
         "port": 1100,
         "weapon": "Phantom",
         "table": {
