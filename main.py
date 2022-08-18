@@ -5,7 +5,6 @@ import os
 import sys
 import re
 import time
-from prettytable import PrettyTable
 from alive_progress import alive_bar
 import asyncio
 from InquirerPy import inquirer
@@ -541,6 +540,10 @@ try:
             if title is not None:
                 if cfg.get_feature_flag("auto_hide_leaderboard") and (not is_leaderboard_needed):
                     table.set_runtime_col_flag('Pos.', False)
+
+                if game_state == "MENUS":
+                    table.set_runtime_col_flag('Agent',False)
+                    table.set_runtime_col_flag('Skin',False)
 
                 print()
                 table.display()
