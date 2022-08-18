@@ -17,7 +17,7 @@ class LoggingClass:
             encoding='utf-8',
             mode='w',
             maxBytes=max_bytes,
-            backupCount=10,
+            backupCount=15,
             delay=True  # We set delay=True to avoid generating an empty file if we rollover early
         )
         # We do a rollover at the start so new instances start writing in their own files

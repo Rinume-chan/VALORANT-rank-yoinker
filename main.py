@@ -42,6 +42,8 @@ server = ""
 
 # https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-escape-sequences-from-a-string-in-python
 ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+# essentially the one above + ■  (party is denoted by a coloured ■)
+party_ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])■')
 
 def program_exit(status: int):  # so we don't need to import the entire sys module
     log(f"exited program with error code {status}")
@@ -556,6 +558,18 @@ try:
                         _last_logged_table = logging_table
 
                         # We want to strip ANSI escape sequences before logging it to file
+                        # First we replace the coloured party symbols with numbers
+                        seen = set()
+                        i = 1
+                        matches = party_ansi_escape.findall(logging_table)
+                        for m in matches:
+                            if m in seen:
+                                continue
+                            logging_table = logging_table.replace(m, str(i))
+                            i += 1
+                            seen.add(m)
+
+                        # Then we purge all the other ansi escape characters
                         logging_table = ansi_escape.sub('', logging_table)
                         log('\n' + logging_table)
 
