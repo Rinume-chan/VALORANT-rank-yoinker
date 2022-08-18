@@ -18,13 +18,13 @@ class Colors:
                     name = "Player"
         if team == 'Red':
             Teamcolor = color(orig_name, fore=(238, 77, 77))
-        elif playerPuuid == selfPuuid:
-            Teamcolor = color(orig_name, fore=(221, 224, 41))
-        else:
+        elif team == 'Blue':
             Teamcolor = color(orig_name, fore=(76, 151, 237))
-
+        else:
+            Teamcolor = ''
+        if playerPuuid == selfPuuid:
+            Teamcolor = color(orig_name, fore=(221, 224, 41))
         return Teamcolor
-
 
     def get_rgb_color_from_skin(self, skin_id, valoApiSkins):
         for skin in valoApiSkins.json()["data"]:
