@@ -546,7 +546,7 @@ try:
                 table.display()
                 print(f"\n{'-'*50}")
                 if game_state == "INGAME":
-                    logging_table = table.get_string(fields=["Party", "Agent", "Name", "Rank", "Peak Rank"])
+                    logging_table = table.pretty_table.get_string(fields=["Party", "Agent", "Name", "Rank", "Peak Rank"])
 
                     # Slight optimization to not log the same table multiple times
                     if _last_logged_table != logging_table:
@@ -565,7 +565,8 @@ try:
             input("Press enter to fetch again...")
             print("Continuing...")
         else:
-            time.sleep(cfg.cooldown)
+            # time.sleep(cfg.cooldown)
+            pass
 except KeyboardInterrupt:
     sys.exit()
 except Exception:
